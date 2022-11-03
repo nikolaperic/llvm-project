@@ -935,22 +935,47 @@ bool MipsSEFrameLowering::assignCalleeSavedSpillSlots(
   if (!STI.hasNanoMips())
     return false;
 
+  static const std::unordered_map<unsigned, unsigned> Regs = {
+      {Mips::GP_NM, 0}, {Mips::FP_NM, 1}, {Mips::RA_NM, 2},  {Mips::S0_NM, 3},
+      {Mips::S1_NM, 4}, {Mips::S2_NM, 5}, {Mips::S3_NM, 6},  {Mips::S4_NM, 7},
+      {Mips::S5_NM, 8}, {Mips::S6_NM, 9}, {Mips::S7_NM, 10},
+  };
+
+  static const std::unordered_map<unsigned, unsigned> CSNumToReg = {
+      {0, Mips::GP_NM}, {1, Mips::FP_NM}, {2, Mips::RA_NM},  {3, Mips::S0_NM},
+      {4, Mips::S1_NM}, {5, Mips::S2_NM}, {6, Mips::S3_NM},  {7, Mips::S4_NM},
+      {8, Mips::S5_NM}, {9, Mips::S6_NM}, {10, Mips::S7_NM},
+  };
+
   // nanoMIPS save and restore instructions require callee-saved registers to be
   // saved in particular order on the stack.
-  auto SortCalleeSaves = [](CalleeSavedInfo First, CalleeSavedInfo Second) {
-    std::unordered_map<unsigned, unsigned> Regs{
-        {Mips::GP_NM, 0}, {Mips::FP_NM, 1}, {Mips::RA_NM, 2},  {Mips::S0_NM, 3},
-        {Mips::S1_NM, 4}, {Mips::S2_NM, 5}, {Mips::S3_NM, 6},  {Mips::S4_NM, 7},
-        {Mips::S5_NM, 8}, {Mips::S6_NM, 9}, {Mips::S7_NM, 10},
-    };
-
+  auto CompareCalleeSaves = [](CalleeSavedInfo First, CalleeSavedInfo Second) {
     // There should be no callee-saved registers that are not part of the list.
     assert(Regs.find(First.getReg()) != Regs.end() &&
            Regs.find(Second.getReg()) != Regs.end());
 
-    return Regs[First.getReg()] < Regs[Second.getReg()];
+    return Regs.at(First.getReg()) < Regs.at(Second.getReg());
   };
-  std::sort(CSI.begin(), CSI.end(), SortCalleeSaves);
+
+  // If CSI list has less than two callee-saved registers we can
+  // return from method since no insertions nor sorting is needed
+  if(CSI.size() < 2)
+    return false;
+
+  SmallBitVector CSNumBitVector(11);
+  for (CalleeSavedInfo &CS : CSI)
+    CSNumBitVector.set(Regs.at(CS.getReg()));
+
+  int MinCSNum = CSNumBitVector.find_first();
+  int MaxCSNum = CSNumBitVector.find_last();
+
+  // Inserting all of the missing callee-saved registers between min and max
+  // in order to allow further load-store optimizations
+  for (int i = MinCSNum + 1; i < MaxCSNum; ++i)
+    if (!CSNumBitVector.test(i))
+      CSI.push_back(CalleeSavedInfo(CSNumToReg.at(i)));
+
+  std::sort(CSI.begin(), CSI.end(), CompareCalleeSaves);
   return false;
 }
 
