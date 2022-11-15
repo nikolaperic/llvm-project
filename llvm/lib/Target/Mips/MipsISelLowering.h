@@ -693,6 +693,9 @@ class TargetRegisterClass;
       return true;
     }
 
+    bool shouldExpandShift(SelectionDAG &DAG, SDNode *N) const override;
+    bool shouldConsiderGEPOffsetSplit() const override;
+
     /// Emit a sign-extension using sll/sra, seb, or seh appropriately.
     MachineBasicBlock *emitSignExtendToI32InReg(MachineInstr &MI,
                                                 MachineBasicBlock *BB,
