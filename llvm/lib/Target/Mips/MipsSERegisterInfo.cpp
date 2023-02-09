@@ -220,7 +220,18 @@ void MipsSERegisterInfo::eliminateFI(MachineBasicBlock::iterator II,
   bool IsKill = false;
   int64_t Offset;
 
-  Offset = SPOffset + (int64_t)StackSize;
+  if (MipsFI->isTwoStepStackSetup(MF)) {
+
+    int64_t CalleeSavedStackSize = MipsFI->getCalleeSavedStackSize();
+
+    if (FrameIndex >= MinCSFI && FrameIndex <= MaxCSFI)
+      Offset = SPOffset + (int64_t)CalleeSavedStackSize;
+    else
+      Offset = SPOffset + StackSize;
+
+  } else
+    Offset = SPOffset + (int64_t)StackSize;
+
   Offset += MI.getOperand(OpNo + 1).getImm();
 
   LLVM_DEBUG(errs() << "Offset     : " << Offset << "\n"
