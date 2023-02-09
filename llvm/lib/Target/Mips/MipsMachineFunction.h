@@ -87,6 +87,10 @@ public:
   std::map<const char *, const Mips16HardFloatInfo::FuncSignature *>
   StubsNeeded;
 
+  unsigned getCalleeSavedStackSize();
+  void setCalleeSavedStackSize(unsigned Size);
+  bool isTwoStepStackSetup(MachineFunction &MF);
+
 private:
   virtual void anchor();
 
@@ -135,6 +139,8 @@ private:
   /// FrameIndex for start of varargs area for arguments passed on the
   /// stack.
   int VarArgsStackIndex = 0;
+
+  unsigned CalleeSavedStackSize = 0;
 };
 
 } // end namespace llvm

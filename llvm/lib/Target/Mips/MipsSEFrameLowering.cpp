@@ -432,19 +432,61 @@ void MipsSEFrameLowering::emitPrologue(MachineFunction &MF,
   MachineModuleInfo &MMI = MF.getMMI();
   const MCRegisterInfo *MRI = MMI.getContext().getRegisterInfo();
 
-  // Adjust stack.
-  TII.adjustStackPtr(SP, -StackSize, MBB, MBBI);
+  const std::vector<CalleeSavedInfo> &CSI = MFI.getCalleeSavedInfo();
 
-  // emit ".cfi_def_cfa_offset StackSize"
-  unsigned CFIIndex =
-      MF.addFrameInst(MCCFIInstruction::cfiDefCfaOffset(nullptr, StackSize));
-  BuildMI(MBB, MBBI, dl, TII.get(TargetOpcode::CFI_INSTRUCTION))
-      .addCFIIndex(CFIIndex);
+  int64_t CalleeSavedStackSize;
+  int64_t LoaclStackSize;
+  // If we have two-step stack setup MBBI_2 will point to the
+  // first instruction after calle-saves store sequence
+  MachineBasicBlock::iterator MBBI_2 = MBBI;
+
+  if (MipsFI->isTwoStepStackSetup(MF)) {
+
+    CalleeSavedStackSize = MipsFI->getCalleeSavedStackSize();
+    unsigned NumOfCSI = MFI.getCalleeSavedInfo().size();
+
+    // Move MBBI_2 to point to the first instruction after
+    // calle-saves store sequence. That's the place for the second
+    // steck pointer adjustment.
+    std::advance(MBBI_2, NumOfCSI);
+
+    // The first stack pointer adjustment to cover space needed
+    // to spill callee-saved registers on stack.
+    TII.adjustStackPtr(SP, -CalleeSavedStackSize, MBB, MBBI);
+
+    LoaclStackSize = StackSize - CalleeSavedStackSize;
+
+    // The second stack pointer adjustment to cover space needed
+    // to spill local objects on stack.
+    TII.adjustStackPtr(SP, -LoaclStackSize, MBB, MBBI_2);
+
+  } else
+    // Adjust stack.
+    TII.adjustStackPtr(SP, -StackSize, MBB, MBBI);
+
+  if (MipsFI->isTwoStepStackSetup(MF)) {
+    // emit ".cfi_def_cfa_offset CalleeSavedStackSize"
+    // emit ".cfi_def_cfa_offset StackSize = CalleeSavedStackSize +
+    // LoaclStackSize"
+    unsigned CFIIndex_1 = MF.addFrameInst(
+        MCCFIInstruction::cfiDefCfaOffset(nullptr, CalleeSavedStackSize));
+    unsigned CFIIndex_2 =
+        MF.addFrameInst(MCCFIInstruction::cfiDefCfaOffset(nullptr, StackSize));
+    BuildMI(MBB, MBBI, dl, TII.get(TargetOpcode::CFI_INSTRUCTION))
+        .addCFIIndex(CFIIndex_1);
+    BuildMI(MBB, MBBI_2, dl, TII.get(TargetOpcode::CFI_INSTRUCTION))
+        .addCFIIndex(CFIIndex_2);
+  } else {
+    // emit ".cfi_def_cfa_offset StackSize"
+    unsigned CFIIndex =
+        MF.addFrameInst(MCCFIInstruction::cfiDefCfaOffset(nullptr, StackSize));
+    BuildMI(MBB, MBBI, dl, TII.get(TargetOpcode::CFI_INSTRUCTION))
+        .addCFIIndex(CFIIndex);
+  }
 
   if (MF.getFunction().hasFnAttribute("interrupt"))
     emitInterruptPrologueStub(MF, MBB);
 
-  const std::vector<CalleeSavedInfo> &CSI = MFI.getCalleeSavedInfo();
 
   if (!CSI.empty()) {
     // Find the instruction past the last instruction that saves a callee-saved
@@ -530,6 +572,14 @@ void MipsSEFrameLowering::emitPrologue(MachineFunction &MF,
     // Insert instruction "move $fp, $sp" at this location.
     BuildMI(MBB, MBBI, dl, TII.get(MOVE), FP).addReg(SP).addReg(ZERO)
       .setMIFlag(MachineInstr::FrameSetup);
+
+    if (MipsFI->isTwoStepStackSetup(MF))
+      // If we have two-step stack setup insert instruction "move $fp, $sp"
+      // after the second stack setup also
+      BuildMI(MBB, MBBI_2, dl, TII.get(MOVE), FP)
+          .addReg(SP)
+          .addReg(ZERO)
+          .setMIFlag(MachineInstr::FrameSetup);
 
     // emit ".cfi_def_cfa_register $fp"
     unsigned CFIIndex = MF.addFrameInst(MCCFIInstruction::createDefCfaRegister(
@@ -747,8 +797,26 @@ void MipsSEFrameLowering::emitEpilogue(MachineFunction &MF,
   if (!StackSize)
     return;
 
-  // Adjust stack.
-  TII.adjustStackPtr(SP, StackSize, MBB, MBBI);
+  if (MipsFI->isTwoStepStackSetup(MF)) {
+
+    int64_t CalleeSavedStackSize = MipsFI->getCalleeSavedStackSize();
+    int64_t LoaclStackSize = StackSize - CalleeSavedStackSize;
+
+    int64_t NumOfCSI = MFI.getCalleeSavedInfo().size();
+
+    MachineBasicBlock::iterator MBBI_2 = MBBI;
+    // Move MBBI_2 to point to the first instruction in
+    // calle-saved load sequence. That's the place where we
+    // need to undo the second stack adjustment
+    std::advance(MBBI_2, (-1) * NumOfCSI);
+
+    // Undo the second stack pointer adjustment
+    TII.adjustStackPtr(SP, LoaclStackSize, MBB, MBBI_2);
+    // Undo the first stack pointer adjustment
+    TII.adjustStackPtr(SP, CalleeSavedStackSize, MBB, MBBI);
+  } else
+    // Adjust stack.
+    TII.adjustStackPtr(SP, StackSize, MBB, MBBI);
 }
 
 void MipsSEFrameLowering::emitInterruptEpilogueStub(
@@ -957,25 +1025,38 @@ bool MipsSEFrameLowering::assignCalleeSavedSpillSlots(
     return Regs.at(First.getReg()) < Regs.at(Second.getReg());
   };
 
-  // If CSI list has less than two callee-saved registers we can
-  // return from method since no insertions nor sorting is needed
-  if(CSI.size() < 2)
-    return false;
+  // If CSI list has less than two callee-saved registers
+  // no insertions nor sorting is needed
+  if (CSI.size() >= 2) {
 
-  SmallBitVector CSNumBitVector(11);
-  for (CalleeSavedInfo &CS : CSI)
-    CSNumBitVector.set(Regs.at(CS.getReg()));
+    SmallBitVector CSNumBitVector(11);
+    for (CalleeSavedInfo &CS : CSI)
+      CSNumBitVector.set(Regs.at(CS.getReg()));
 
-  int MinCSNum = CSNumBitVector.find_first();
-  int MaxCSNum = CSNumBitVector.find_last();
+    int MinCSNum = CSNumBitVector.find_first();
+    int MaxCSNum = CSNumBitVector.find_last();
 
-  // Inserting all of the missing callee-saved registers between min and max
-  // in order to allow further load-store optimizations
-  for (int i = MinCSNum + 1; i < MaxCSNum; ++i)
-    if (!CSNumBitVector.test(i))
-      CSI.push_back(CalleeSavedInfo(CSNumToReg.at(i)));
+    // Inserting all of the missing callee-saved registers between min and max
+    // in order to allow further load-store optimizations
+    for (int i = MinCSNum + 1; i < MaxCSNum; ++i)
+      if (!CSNumBitVector.test(i))
+        CSI.push_back(CalleeSavedInfo(CSNumToReg.at(i)));
 
-  std::sort(CSI.begin(), CSI.end(), CompareCalleeSaves);
+    std::sort(CSI.begin(), CSI.end(), CompareCalleeSaves);
+  }
+
+  MipsFunctionInfo *MipsFI = MF.getInfo<MipsFunctionInfo>();
+  const MachineRegisterInfo &MRI = MF.getRegInfo();
+
+  unsigned CalleeSavedOffsetSize = 0;
+  for (CalleeSavedInfo &CS : CSI) {
+    Register Reg = CS.getReg();
+    auto RegSize = TRI->getRegSizeInBits(Reg, MRI) / 8;
+    CalleeSavedOffsetSize += RegSize;
+  }
+  uint64_t AlignedCSStackSize = alignTo(CalleeSavedOffsetSize, 16);
+  MipsFI->setCalleeSavedStackSize(AlignedCSStackSize);
+
   return false;
 }
 
