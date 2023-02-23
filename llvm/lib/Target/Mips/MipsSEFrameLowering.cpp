@@ -569,23 +569,40 @@ void MipsSEFrameLowering::emitPrologue(MachineFunction &MF,
 
   // if framepointer enabled, set it to point to the stack pointer.
   if (hasFP(MF)) {
-    // Insert instruction "move $fp, $sp" at this location.
-    BuildMI(MBB, MBBI, dl, TII.get(MOVE), FP).addReg(SP).addReg(ZERO)
-      .setMIFlag(MachineInstr::FrameSetup);
 
-    if (MipsFI->isTwoStepStackSetup(MF))
-      // If we have two-step stack setup insert instruction "move $fp, $sp"
-      // after the second stack setup also
-      BuildMI(MBB, MBBI_2, dl, TII.get(MOVE), FP)
+    if (STI.hasNanoMips()) {
+
+      BuildMI(MBB, MBBI_2, dl, TII.get(ADDiu), FP)
+          .addReg(SP)
+          .addImm(-4096 + StackSize);
+
+      // emit ".cfi_def_cfa_register $fp"
+      unsigned CFIIndex =
+          MF.addFrameInst(MCCFIInstruction::createDefCfaRegister(
+              nullptr, MRI->getDwarfRegNum(FP, true)));
+      BuildMI(MBB, MBBI_2, dl, TII.get(TargetOpcode::CFI_INSTRUCTION))
+          .addCFIIndex(CFIIndex);
+
+      // emit ".cfi_def_cfa_offset 4096"
+      unsigned CFIIndex_1 =
+          MF.addFrameInst(MCCFIInstruction::cfiDefCfaOffset(nullptr, 4096));
+      BuildMI(MBB, MBBI_2, dl, TII.get(TargetOpcode::CFI_INSTRUCTION))
+          .addCFIIndex(CFIIndex_1);
+
+    } else {
+      // Insert instruction "move $fp, $sp" at this location.
+      BuildMI(MBB, MBBI, dl, TII.get(MOVE), FP)
           .addReg(SP)
           .addReg(ZERO)
           .setMIFlag(MachineInstr::FrameSetup);
 
-    // emit ".cfi_def_cfa_register $fp"
-    unsigned CFIIndex = MF.addFrameInst(MCCFIInstruction::createDefCfaRegister(
-        nullptr, MRI->getDwarfRegNum(FP, true)));
-    BuildMI(MBB, MBBI, dl, TII.get(TargetOpcode::CFI_INSTRUCTION))
-        .addCFIIndex(CFIIndex);
+      // emit ".cfi_def_cfa_register $fp"
+      unsigned CFIIndex =
+          MF.addFrameInst(MCCFIInstruction::createDefCfaRegister(
+              nullptr, MRI->getDwarfRegNum(FP, true)));
+      BuildMI(MBB, MBBI, dl, TII.get(TargetOpcode::CFI_INSTRUCTION))
+          .addCFIIndex(CFIIndex);
+    }
 
     if (RegInfo.hasStackRealignment(MF)) {
       // addiu $Reg, $zero, -MaxAlignment
@@ -595,13 +612,19 @@ void MipsSEFrameLowering::emitPrologue(MachineFunction &MF,
              "Function's alignment size requirement is not supported.");
       int64_t MaxAlign = -(int64_t)MFI.getMaxAlign().value();
 
-      if (ABI.IsP32())
-        BuildMI(MBB, MBBI, dl, TII.get(Mips::Li_NM), VR).addImm(MaxAlign);
-      else
+      if (ABI.IsP32()) {
+        uint64_t MaxAlignment = MFI.getMaxAlign().value();
+        BuildMI(MBB, MBBI, dl, TII.get(Mips::INS_NM), SP)
+            .addReg(ZERO)
+            .addImm(0)
+            .addImm(Log2_64(MaxAlignment))
+            .addReg(SP);
+      } else {
         BuildMI(MBB, MBBI, dl, TII.get(ADDiu), VR)
             .addReg(ZERO)
             .addImm(MaxAlign);
-      BuildMI(MBB, MBBI, dl, TII.get(AND), SP).addReg(SP).addReg(VR);
+        BuildMI(MBB, MBBI, dl, TII.get(AND), SP).addReg(SP).addReg(VR);
+      }
 
       if (hasBP(MF)) {
         // move $s7, $sp
@@ -759,7 +782,7 @@ void MipsSEFrameLowering::emitEpilogue(MachineFunction &MF,
   unsigned MOVE = ABI.GetGPRMoveOp();
 
   // if framepointer enabled, restore the stack pointer.
-  if (hasFP(MF)) {
+  if (hasFP(MF) && !STI.hasNanoMips()) {
     // Find the first instruction that restores a callee-saved register.
     MachineBasicBlock::iterator I = MBBI;
 
