@@ -56,6 +56,7 @@ public:
   virtual void emitDirectiveAbiCalls();
   virtual void emitDirectiveNaN2008();
   virtual void emitDirectiveLinkRelax();
+  virtual void emitDirectiveNoLinkRelax();
   virtual void emitDirectiveNaNLegacy();
   virtual void emitDirectiveOptionPic0();
   virtual void emitDirectiveOptionPic2();
@@ -240,6 +241,7 @@ public:
   void emitDirectiveAbiCalls() override;
   void emitDirectiveNaN2008() override;
   void emitDirectiveLinkRelax() override;
+  void emitDirectiveNoLinkRelax() override;
   void emitDirectiveNaNLegacy() override;
   void emitDirectiveOptionPic0() override;
   void emitDirectiveOptionPic2() override;
@@ -318,6 +320,7 @@ class MipsTargetELFStreamer : public MipsTargetStreamer {
   bool MicroMipsEnabled;
   const MCSubtargetInfo &STI;
   bool Pic;
+  bool Pid;
 
 public:
   bool isMicroMipsEnabled() const { return MicroMipsEnabled; }
@@ -345,6 +348,9 @@ public:
   void emitDirectiveOptionPic0() override;
   void emitDirectiveOptionPic2() override;
   void emitDirectiveInsn() override;
+  void emitDirectiveLinkRelax() override;
+  void emitDirectiveNoLinkRelax() override;
+  void emitDirectiveModulePcRel() override;
   void emitFrame(unsigned StackReg, unsigned StackSize,
                  unsigned ReturnReg) override;
   void emitMask(unsigned CPUBitmask, int CPUTopSavedRegOff) override;
