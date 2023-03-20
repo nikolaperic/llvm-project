@@ -573,6 +573,8 @@ extern "C" LLVM_EXTERNAL_VISIBILITY void LLVMInitializeMipsDisassembler() {
                                          createMipsDisassembler);
   TargetRegistry::RegisterMCDisassembler(getTheMips64elTarget(),
                                          createMipselDisassembler);
+  TargetRegistry::RegisterMCDisassembler(getTheNanoMipsTarget(),
+                                         createMipselDisassembler);
 }
 
 #include "MipsGenDisassemblerTables.inc"
