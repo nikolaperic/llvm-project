@@ -283,17 +283,25 @@ def MipsAsmParser : AsmParser {
 
 def MipsAsmParserVariant : AsmParserVariant {
   int Variant = 0;
-
+  string Name = "mips";
   // Recognize hard coded registers.
+  string RegisterPrefix = "$";
+}
+
+def NanoMipsAsmParserVariant : AsmParserVariant {
+  int Variant = 1;
+  string Name = "nanomips";
+  string TokenizingCharacters = "*!";
   string RegisterPrefix = "$";
 }
 
 def Mips : Target {
   let InstructionSet = MipsInstrInfo;
   let AssemblyParsers = [MipsAsmParser];
-  let AssemblyParserVariants = [MipsAsmParserVariant];
+  let AssemblyParserVariants = [MipsAsmParserVariant, NanoMipsAsmParserVariant];
   let AllowRegisterRenaming = 1;
 }
+
 
 //===----------------------------------------------------------------------===//
 // Pfm Counters
