@@ -310,3 +310,21 @@ void MipsInstPrinter::printNanoMipsRegisterList(const MCInst *MI, int OpNum,
     printRegName(O, MI->getOperand(I).getReg());
   }
 }
+
+void MipsInstPrinter::printHi20(const MCInst *MI, int OpNum,
+				raw_ostream &O) {
+  const MCOperand& MO = MI->getOperand(OpNum);
+  if (MO.isImm())
+    O << "%hi(" <<  formatHex(MO.getImm()) << ")";
+  else
+    printOperand(MI, OpNum, O);
+}
+
+void MipsInstPrinter::printHi20PCRel(const MCInst *MI, int OpNum,
+				raw_ostream &O) {
+  const MCOperand& MO = MI->getOperand(OpNum);
+  if (MO.isImm())
+    O << "%pcrel_hi(" << formatHex(MO.getImm()) << ")";
+  else
+    printOperand(MI, OpNum, O);
+}

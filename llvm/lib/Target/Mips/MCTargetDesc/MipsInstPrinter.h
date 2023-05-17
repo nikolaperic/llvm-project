@@ -113,6 +113,8 @@ private:
   void printSaveRestore(const MCInst *MI, raw_ostream &O);
   void printRegisterList(const MCInst *MI, int opNum, raw_ostream &O);
   void printNanoMipsRegisterList(const MCInst *MI, int opNum, raw_ostream &O);
+  void printHi20(const MCInst *MI, int OpNum, raw_ostream &O);
+  void printHi20PCRel(const MCInst *MI, int OpNum, raw_ostream &O);
 };
 } // end namespace llvm
 
