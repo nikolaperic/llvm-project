@@ -327,6 +327,28 @@ static DecodeStatus DecodeMem(MCInst &Inst,
                               uint64_t Address,
                               const void *Decoder);
 
+template <unsigned Offbits, bool isSigned, unsigned rt>
+static DecodeStatus DecodeMemNM(MCInst &Inst,
+				unsigned Insn,
+				uint64_t Address,
+				const void *Decoder);
+
+static DecodeStatus DecodeMemZeroNM(MCInst &Inst,
+				    unsigned Insn,
+				    uint64_t Address,
+				    const void *Decoder);
+
+template <unsigned rt>
+static DecodeStatus DecodeMemNMRX(MCInst &Inst,
+				  unsigned Insn,
+				  uint64_t Address,
+				  const void *Decoder);
+
+static DecodeStatus DecodeMemNM4x4(MCInst &Inst,
+				   unsigned Insn,
+				   uint64_t Address,
+				   const void *Decoder);
+
 static DecodeStatus DecodeMemEVA(MCInst &Inst,
                                  unsigned Insn,
                                  uint64_t Address,
@@ -1807,6 +1829,87 @@ static DecodeStatus DecodeMem(MCInst &Inst,
   return MCDisassembler::Success;
 }
 
+template <unsigned Offbits = 12, bool isSigned = false,
+	  unsigned rt = Mips::GPRNM32RegClassID>
+static DecodeStatus DecodeMemNM(MCInst &Inst,
+				unsigned Insn,
+				uint64_t Address,
+				const void *Decoder) {
+  int Offset = (Insn & ((1 << Offbits) - 1));
+  if (isSigned)
+    Offset = SignExtend32<Offbits>(Offset);
+  unsigned Base;
+
+  switch (rt) {
+    case Mips::GPRNMGPRegClassID:
+    case Mips::GPRNMSPRegClassID:
+      Base = 0;
+      break;
+    case Mips::GPRNM3RegClassID:
+      Base = fieldFromInstruction(Insn, Offbits, 3);
+      break;
+    case Mips::GPRNM4RegClassID:
+    case Mips::GPRNM4ZRegClassID:
+      assert(false && "Unexpected register class.");
+      break;
+    default:
+      Base = fieldFromInstruction(Insn, Offbits, 5);
+  }
+  Base = getReg(Decoder, rt, Base);
+
+  Inst.addOperand(MCOperand::createReg(Base));
+  Inst.addOperand(MCOperand::createImm(Offset));
+
+  return MCDisassembler::Success;
+}
+
+static DecodeStatus DecodeMemZeroNM(MCInst &Inst,
+				unsigned Insn,
+				uint64_t Address,
+				const void *Decoder) {
+  unsigned Base;
+  Base = fieldFromInstruction(Insn, 0, 5);
+  Base = getReg(Decoder, Mips::GPRNM32RegClassID, Base);
+  Inst.addOperand(MCOperand::createReg(Base));
+
+  return MCDisassembler::Success;
+}
+
+template <unsigned RegClass = Mips::GPRNM32RegClassID>
+static DecodeStatus DecodeMemNMRX(MCInst &Inst,
+				  unsigned Insn,
+				  uint64_t Address,
+				  const void *Decoder) {
+  unsigned Offset;
+  unsigned Base;
+  Offset = fieldFromInstruction(Insn, 0, 5);
+  Base = fieldFromInstruction(Insn, 5, 5);
+
+  Base = getReg(Decoder, RegClass, Base);
+  Offset = getReg(Decoder, RegClass, Offset);
+  Inst.addOperand(MCOperand::createReg(Base));
+  Inst.addOperand(MCOperand::createReg(Offset));
+
+  return MCDisassembler::Success;
+}
+
+
+static DecodeStatus DecodeMemNM4x4(MCInst &Inst,
+				   unsigned Insn,
+				   uint64_t Address,
+				   const void *Decoder) {
+  int Offset = fieldFromInstruction(Insn, 0, 4);
+  unsigned Base;
+
+  Base = getReg(Decoder, Mips::GPRNM32RegClassID,
+		fieldFromInstruction(Insn, 4, 5) & ~0x8);
+
+  Inst.addOperand(MCOperand::createReg(Base));
+  Inst.addOperand(MCOperand::createImm(Offset));
+
+  return MCDisassembler::Success;
+}
+
 static DecodeStatus DecodeMemEVA(MCInst &Inst,
                                  unsigned Insn,
                                  uint64_t Address,
@@ -2191,6 +2294,7 @@ static DecodeStatus DecodeMemMMImm16(MCInst &Inst,
 
   return MCDisassembler::Success;
 }
+
 
 static DecodeStatus DecodeFMem(MCInst &Inst,
                                unsigned Insn,
