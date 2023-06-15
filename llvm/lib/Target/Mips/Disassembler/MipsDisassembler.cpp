@@ -596,6 +596,33 @@ static DecodeStatus DecodeMovePRegPair(MCInst &Inst, unsigned RegPair,
 static DecodeStatus DecodeMovePOperands(MCInst &Inst, unsigned Insn,
                                         uint64_t Address, const void *Decoder);
 
+static DecodeStatus DecodeImmM1To126(MCInst &Inst, unsigned Value,
+				     uint64_t Address,
+				     const void *Decoder);
+
+static DecodeStatus DecodeUImm4Mask(MCInst &Inst, unsigned Value,
+				    uint64_t Address,
+				    const void *Decoder);
+
+static DecodeStatus DecodeUImm3Shift(MCInst &Inst, unsigned Value,
+				     uint64_t Address,
+				     const void *Decoder);
+
+static DecodeStatus DecodeNegImm12(MCInst &Inst,
+				   unsigned Insn,
+				   uint64_t Address,
+				   const void *Decoder);
+
+template <unsigned Bits, unsigned Offset, unsigned Scale, unsigned RegNum>
+static DecodeStatus DecodeSImmWithReg(MCInst &Inst, unsigned Value,
+				      uint64_t Address,
+				      const void *Decoder);
+
+template <unsigned Bits, unsigned Offset, unsigned Scale, unsigned RegNum>
+static DecodeStatus DecodeUImmWithReg(MCInst &Inst, unsigned Value,
+				      uint64_t Address,
+				      const void *Decoder);
+
 static MCDisassembler *createMipsDisassembler(
                        const Target &T,
                        const MCSubtargetInfo &STI,
@@ -2865,4 +2892,67 @@ static DecodeStatus DecodeBlezGroupBranchMMR6(MCInst &MI, InsnType insn,
   MI.addOperand(MCOperand::createImm(Imm));
 
   return MCDisassembler::Success;
+}
+
+static DecodeStatus DecodeImmM1To126(MCInst &Inst, unsigned Value,
+				     uint64_t Address,
+				     const void *Decoder) {
+  assert(isUInt<7>(Value) && "Unexpected value in DecoderMethod");
+  if (Value == 127)
+    Inst.addOperand(MCOperand::createImm(-1));
+  else
+    Inst.addOperand(MCOperand::createImm(Value));
+  return MCDisassembler::Success;
+}
+
+static DecodeStatus DecodeUImm4Mask(MCInst &Inst, unsigned Value,
+				    uint64_t Address,
+				    const void *Decoder) {
+  assert(isUInt<4>(Value) && "Unexpected value in DecoderMethod");
+  if (Value == 12)
+    Inst.addOperand(MCOperand::createImm(0xff));
+  else if (Value == 13)
+    Inst.addOperand(MCOperand::createImm(0xffff));
+  else
+    Inst.addOperand(MCOperand::createImm(Value));
+  return MCDisassembler::Success;
+}
+
+static DecodeStatus DecodeUImm3Shift(MCInst &Inst, unsigned Value,
+				     uint64_t Address,
+				     const void *Decoder) {
+  assert(isUInt<3>(Value) && "Unexpected value in DecoderMethod");
+  if (Value == 0)
+    Inst.addOperand(MCOperand::createImm(8));
+  else
+    Inst.addOperand(MCOperand::createImm(Value));
+  return MCDisassembler::Success;
+}
+
+static DecodeStatus DecodeNegImm12(MCInst &Inst,
+				   unsigned Insn,
+				   uint64_t Address,
+				   const void *Decoder) {
+  int Imm = fieldFromInstruction(Insn, 0, 12);
+  assert(isUInt<12>(Imm) && "Unexpected value in DecoderMethod");
+  Inst.addOperand(MCOperand::createImm(-Imm));
+  return MCDisassembler::Success;
+}
+
+template <unsigned Bits, unsigned Offset, unsigned Scale, unsigned RegNum>
+static DecodeStatus DecodeSImmWithReg(MCInst &Inst, unsigned Value,
+                                                 uint64_t Address,
+                                                 const void *Decoder) {
+  Inst.addOperand(MCOperand::createReg(RegNum));
+  return DecodeSImmWithOffsetAndScale<Bits, Offset, Scale> (Inst, Value, Address,
+							    Decoder);
+}
+
+template <unsigned Bits, unsigned Offset, unsigned Scale, unsigned RegNum>
+static DecodeStatus DecodeUImmWithReg(MCInst &Inst, unsigned Value,
+                                                 uint64_t Address,
+                                                 const void *Decoder) {
+  Inst.addOperand(MCOperand::createReg(RegNum));
+  return DecodeUImmWithOffsetAndScale<Bits, Offset, Scale> (Inst, Value, Address,
+							    Decoder);
 }
