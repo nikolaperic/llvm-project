@@ -3408,10 +3408,6 @@ include "MipsMSAInstrInfo.td"
 include "MipsEVAInstrFormats.td"
 include "MipsEVAInstrInfo.td"
 
-// MT
-include "MipsMTInstrFormats.td"
-include "MipsMTInstrInfo.td"
-
 // Micromips
 include "MicroMipsInstrFormats.td"
 include "MicroMipsInstrInfo.td"
@@ -3428,3 +3424,7 @@ include "MicroMipsDSPInstrInfo.td"
 // Nanomips
 include "NanoMipsInstrFormats.td"
 include "NanoMipsInstrInfo.td"
+
+// MT
+include "MipsMTInstrFormats.td"
+include "MipsMTInstrInfo.td"
