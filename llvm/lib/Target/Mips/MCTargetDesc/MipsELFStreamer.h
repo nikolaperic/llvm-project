@@ -59,6 +59,9 @@ public:
   void emitValueImpl(const MCExpr *Value, unsigned Size, SMLoc Loc) override;
   void emitIntValue(uint64_t Value, unsigned Size) override;
 
+  void emitCodeAlignment(unsigned ByteAlignment, unsigned MaxBytesToEmit) override;
+  void InitSections(bool NoExecStack) override;
+
   // Overriding these functions allows us to avoid recording of these labels
   // in EmitLabel and later marking them as microMIPS.
   void emitCFIStartProcImpl(MCDwarfFrameInfo &Frame) override;
