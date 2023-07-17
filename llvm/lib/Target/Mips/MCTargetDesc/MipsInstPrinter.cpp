@@ -277,6 +277,17 @@ bool MipsInstPrinter::printAlias(const char *Str, const MCInst &MI,
   return true;
 }
 
+bool MipsInstPrinter::printAlias(const char *Str, const MCInst &MI,
+                                 unsigned OpNo0, unsigned OpNo1,
+                                 unsigned OpNo2, raw_ostream &OS) {
+  printAlias(Str, MI, OpNo0, OS);
+  OS << ", ";
+  printOperand(&MI, OpNo1, OS);
+  OS << ", ";
+  printOperand(&MI, OpNo2, OS);
+  return true;
+}
+
 bool MipsInstPrinter::printAlias(const MCInst &MI, raw_ostream &OS) {
   switch (MI.getOpcode()) {
   case Mips::BEQ:
@@ -322,6 +333,10 @@ bool MipsInstPrinter::printAlias(const MCInst &MI, raw_ostream &OS) {
   case Mips::OR:
     // or $r0, $r1, $zero => move $r0, $r1
     return isReg<Mips::ZERO>(MI, 2) && printAlias("move", MI, 0, 1, OS);
+  case Mips::ANDI16_NM:
+  case Mips::ANDI_NM:
+    // andi[16/32] $r0, $r1, imm => andi $r0, $r1, imm
+    return printAlias("andi", MI, 0, 1, 2, OS);
   default: return false;
   }
 }
