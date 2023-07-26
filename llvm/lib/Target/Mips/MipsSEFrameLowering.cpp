@@ -435,7 +435,7 @@ void MipsSEFrameLowering::emitPrologue(MachineFunction &MF,
   const std::vector<CalleeSavedInfo> &CSI = MFI.getCalleeSavedInfo();
 
   int64_t CalleeSavedStackSize;
-  int64_t LoaclStackSize;
+  int64_t LocalStackSize;
   // If we have two-step stack setup MBBI_2 will point to the
   // first instruction after calle-saves store sequence
   MachineBasicBlock::iterator MBBI_2 = MBBI;
@@ -447,27 +447,22 @@ void MipsSEFrameLowering::emitPrologue(MachineFunction &MF,
 
     // Move MBBI_2 to point to the first instruction after
     // calle-saves store sequence. That's the place for the second
-    // steck pointer adjustment.
+    // stack pointer adjustment.
     std::advance(MBBI_2, NumOfCSI);
 
     // The first stack pointer adjustment to cover space needed
     // to spill callee-saved registers on stack.
     TII.adjustStackPtr(SP, -CalleeSavedStackSize, MBB, MBBI);
 
-    LoaclStackSize = StackSize - CalleeSavedStackSize;
+    LocalStackSize = StackSize - CalleeSavedStackSize;
 
     // The second stack pointer adjustment to cover space needed
     // to spill local objects on stack.
-    TII.adjustStackPtr(SP, -LoaclStackSize, MBB, MBBI_2);
+    TII.adjustStackPtr(SP, -LocalStackSize, MBB, MBBI_2);
 
-  } else
-    // Adjust stack.
-    TII.adjustStackPtr(SP, -StackSize, MBB, MBBI);
-
-  if (MipsFI->isTwoStepStackSetup(MF)) {
     // emit ".cfi_def_cfa_offset CalleeSavedStackSize"
     // emit ".cfi_def_cfa_offset StackSize = CalleeSavedStackSize +
-    // LoaclStackSize"
+    // LocalStackSize"
     unsigned CFIIndex_1 = MF.addFrameInst(
         MCCFIInstruction::cfiDefCfaOffset(nullptr, CalleeSavedStackSize));
     unsigned CFIIndex_2 =
@@ -477,6 +472,9 @@ void MipsSEFrameLowering::emitPrologue(MachineFunction &MF,
     BuildMI(MBB, MBBI_2, dl, TII.get(TargetOpcode::CFI_INSTRUCTION))
         .addCFIIndex(CFIIndex_2);
   } else {
+    // Adjust stack.
+    TII.adjustStackPtr(SP, -StackSize, MBB, MBBI);
+
     // emit ".cfi_def_cfa_offset StackSize"
     unsigned CFIIndex =
         MF.addFrameInst(MCCFIInstruction::cfiDefCfaOffset(nullptr, StackSize));
@@ -823,7 +821,7 @@ void MipsSEFrameLowering::emitEpilogue(MachineFunction &MF,
   if (MipsFI->isTwoStepStackSetup(MF)) {
 
     int64_t CalleeSavedStackSize = MipsFI->getCalleeSavedStackSize();
-    int64_t LoaclStackSize = StackSize - CalleeSavedStackSize;
+    int64_t LocalStackSize = StackSize - CalleeSavedStackSize;
 
     int64_t NumOfCSI = MFI.getCalleeSavedInfo().size();
 
@@ -834,7 +832,7 @@ void MipsSEFrameLowering::emitEpilogue(MachineFunction &MF,
     std::advance(MBBI_2, (-1) * NumOfCSI);
 
     // Undo the second stack pointer adjustment
-    TII.adjustStackPtr(SP, LoaclStackSize, MBB, MBBI_2);
+    TII.adjustStackPtr(SP, LocalStackSize, MBB, MBBI_2);
     // Undo the first stack pointer adjustment
     TII.adjustStackPtr(SP, CalleeSavedStackSize, MBB, MBBI);
   } else
