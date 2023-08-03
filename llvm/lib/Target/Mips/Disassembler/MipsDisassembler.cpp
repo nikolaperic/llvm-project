@@ -663,6 +663,9 @@ static DecodeStatus DecodeUImmWithReg(MCInst &Inst, unsigned Value,
 				      uint64_t Address,
 				      const void *Decoder);
 
+static DecodeStatus DecodeSImm32s12(MCInst &Inst, unsigned Insn,
+				    uint64_t Address, const void *Decoder);
+
 static MCDisassembler *createMipsDisassembler(
                        const Target &T,
                        const MCSubtargetInfo &STI,
@@ -3128,4 +3131,13 @@ static DecodeStatus DecodeUImmWithReg(MCInst &Inst, unsigned Value,
   Inst.addOperand(MCOperand::createReg(RegNum));
   return DecodeUImmWithOffsetAndScale<Bits, Offset, Scale> (Inst, Value, Address,
 							    Decoder);
+}
+
+static DecodeStatus DecodeSImm32s12(MCInst &Inst,
+				   unsigned Insn,
+				   uint64_t Address,
+				   const void *Decoder) {
+  int32_t Imm = SignExtend32<20>(Insn) << 12;
+  Inst.addOperand(MCOperand::createImm(Imm));
+  return MCDisassembler::Success;
 }
