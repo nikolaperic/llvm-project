@@ -1,0 +1,13 @@
+clang -target nanomips -Tmti32.ld -m32 -w -DLOG_WRAPPERS  -ffunction-sections -mno-gpopt -Os lsf1_94460_mtkscf116_reduce_test.c -o lsf1_94460_mtkscf116_reduce__0_test.bin -mno-gpopt -Xassembler -G0 
+clang -target nanomips -Tmti32.ld -m32 -w -DLOG_WRAPPERS  -ffunction-sections -mno-gpopt -Os lsf1_98881_mtkscf116_reduce_test.c -o lsf1_98881_mtkscf116_reduce__0_test.bin -mno-gpopt -Xassembler -G0 
+clang -target nanomips -Tmti32.ld -m32 -w -DLOG_WRAPPERS  -ffunction-sections -mno-gpopt -O2 lsf2_79778_mtkscf235_reduce_test.c -o lsf2_79778_mtkscf235_reduce__0_test.bin -mno-gpopt -Xassembler -G0 
+clang -target nanomips -Tmti32.ld -m32 -w -DLOG_WRAPPERS  -ffunction-sections -mno-gpopt -Os lsf3_15227_mtkscf232_reduce_test.c -o lsf3_15227_mtkscf232_reduce__0_test.bin -mno-gpopt -Xassembler -G0 
+clang -target nanomips -Tmti32.ld -m32 -w -DLOG_WRAPPERS  -ffunction-sections -mno-gpopt -Os lsf4_19713_mtkscf237_reduce_test.c -o lsf4_19713_mtkscf237_reduce__0_test.bin -mno-gpopt -Xassembler -G0 
+clang -target nanomips -Tmti32.ld -m32 -w -DLOG_WRAPPERS  -ffunction-sections -mno-gpopt -O2 lsf4_57147_mtkscf237_reduce_test.c -o lsf4_57147_mtkscf237_reduce__0_test.bin -mno-gpopt -Xassembler -G0 
+clang -target nanomips -Tmti32.ld -m32 -w -DLOG_WRAPPERS  -ffunction-sections -mno-gpopt -Os lsf4_8038_mtkscf237_reduce_test.c -o lsf4_8038_mtkscf237_reduce__0_test.bin -mno-gpopt -Xassembler -G0 
+clang -target nanomips -Tmti32.ld -m32 -w -DLOG_WRAPPERS  -ffunction-sections -mno-gpopt -Os lsf5_41658_mtkscf241_reduce_test.c -o lsf5_41658_mtkscf241_reduce__0_test.bin -mno-gpopt -Xassembler -G0 
+clang -target nanomips -Tmti32.ld -m32 -w -DLOG_WRAPPERS  -ffunction-sections -mno-gpopt -Os lsf5_65201_mtkscf241_reduce_test.c -o lsf5_65201_mtkscf241_reduce__0_test.bin -mno-gpopt -Xassembler -G0 
+clang -target nanomips -Tmti32.ld -m32 -w -DLOG_WRAPPERS  -ffunction-sections -mno-gpopt -O2 lsf5_71591_mtkscf241_reduce_test.c -o lsf5_71591_mtkscf241_reduce__0_test.bin -mno-gpopt -Xassembler -G0 
+clang -target nanomips -Tmti32.ld -m32 -w -DLOG_WRAPPERS  -ffunction-sections -mno-gpopt -Os lsf7_14972_mtkscf0120_reduce_test.c -o lsf7_14972_mtkscf0120_reduce__0_test.bin -mno-gpopt -Xassembler -G0 
+clang -target nanomips -Tmti32.ld -m32 -w -DLOG_WRAPPERS  -ffunction-sections -mno-gpopt -Os lsf7_9665_mtkscf0120_reduce_test.c -o lsf7_9665_mtkscf0120_reduce__0_test.bin -mno-gpopt -Xassembler -G0 
+clang -target nanomips -Tmti32.ld -m32 -w -DLOG_WRAPPERS  -ffunction-sections -mno-gpopt -Os lsf8_9891_mtkscf0351_reduce_test.c -o lsf8_9891_mtkscf0351_reduce__0_test.bin -mno-gpopt -Xassembler -G0 
