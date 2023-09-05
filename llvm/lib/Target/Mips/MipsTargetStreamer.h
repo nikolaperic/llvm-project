@@ -61,6 +61,8 @@ public:
   virtual void emitDirectiveOptionPic0();
   virtual void emitDirectiveOptionPic2();
   virtual void emitDirectiveInsn();
+  virtual void emitSignedValue(const MCExpr *Value, unsigned Size,
+				  SMLoc Loc);
   virtual void emitFrame(unsigned StackReg, unsigned StackSize,
                          unsigned ReturnReg);
   virtual void emitMask(unsigned CPUBitmask, int CPUTopSavedRegOff);
@@ -354,6 +356,8 @@ public:
   void emitDirectiveOptionPic0() override;
   void emitDirectiveOptionPic2() override;
   void emitDirectiveInsn() override;
+  void emitSignedValue(const MCExpr *Value, unsigned Size,
+			  SMLoc Loc) override;
   void emitDirectiveLinkRelax() override;
   void emitDirectiveNoLinkRelax() override;
   void emitDirectiveModulePcRel() override;
