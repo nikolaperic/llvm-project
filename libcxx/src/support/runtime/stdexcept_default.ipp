@@ -23,7 +23,7 @@ logic_error::logic_error(const string& msg) : __imp_(msg.c_str()) {}
 
 logic_error::logic_error(const char* msg) : __imp_(msg) {}
 
-logic_error::logic_error(const logic_error& le) noexcept : __imp_(le.__imp_) {}
+logic_error::logic_error(const logic_error& le) noexcept : exception(le), __imp_(le.__imp_) {}
 
 logic_error& logic_error::operator=(const logic_error& le) noexcept {
   __imp_ = le.__imp_;
@@ -35,7 +35,7 @@ runtime_error::runtime_error(const string& msg) : __imp_(msg.c_str()) {}
 runtime_error::runtime_error(const char* msg) : __imp_(msg) {}
 
 runtime_error::runtime_error(const runtime_error& re) noexcept
-    : __imp_(re.__imp_) {}
+    : exception(re), __imp_(re.__imp_) {}
 
 runtime_error& runtime_error::operator=(const runtime_error& re) noexcept {
   __imp_ = re.__imp_;
