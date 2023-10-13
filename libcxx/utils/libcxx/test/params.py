@@ -15,14 +15,7 @@ _warningFlags = [
   '-Wextra',
   '-Wshadow',
   '-Wundef',
-  '-Wno-unused-command-line-argument',
   '-Wno-attributes',
-  '-Wno-pessimizing-move',
-  '-Wno-c++11-extensions',
-  '-Wno-user-defined-literals',
-  '-Wno-noexcept-type',
-  '-Wno-aligned-allocation-unavailable',
-  '-Wno-atomic-alignment',
 
   # GCC warns about places where we might want to add sized allocation/deallocation
   # functions, but we know better what we're doing/testing in the test suite.
@@ -35,6 +28,16 @@ _warningFlags = [
   '-Wunused-variable',
   '-Wunused-parameter',
   '-Wunreachable-code',
+]
+# extra warnings when using clang (inactive)
+_clangWarningFlags = [
+  '-Wno-aligned-allocation-unavailable',
+  '-Wno-user-defined-literals',
+  '-Wno-unused-command-line-argument',
+  '-Wno-pessimizing-move',
+  '-Wno-c++11-extensions',
+  '-Wno-noexcept-type',
+  '-Wno-atomic-alignment',
   '-Wno-unused-local-typedef',
 ]
 
