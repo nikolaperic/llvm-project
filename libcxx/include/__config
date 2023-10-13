@@ -967,6 +967,9 @@ typedef unsigned int   char32_t;
 #  endif
 #endif // defined(__APPLE__)
 
+// A c++/14 feature that requires unimplemented c library support
+#  define _LIBCPP_HAS_NO_ALIGNED_ALLOCATION
+#  define _LIBCPP_HAS_NO_LIBRARY_ALIGNED_ALLOCATION
 #if defined(_LIBCPP_HAS_NO_LIBRARY_ALIGNED_ALLOCATION) || \
     (!defined(__cpp_aligned_new) || __cpp_aligned_new < 201606)
 #  define _LIBCPP_HAS_NO_ALIGNED_ALLOCATION

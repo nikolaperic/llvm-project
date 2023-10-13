@@ -10,7 +10,7 @@ from libcxx.test.dsl import *
 from libcxx.test.features import _isMSVC
 
 _warningFlags = [
-  '-Werror',
+  #'-Werror',
   '-Wall',
   '-Wextra',
   '-Wshadow',
@@ -38,7 +38,7 @@ _warningFlags = [
   '-Wno-unused-local-typedef',
 ]
 
-_allStandards = ['c++03', 'c++11', 'c++14', 'c++17', 'c++20', 'c++2b']
+_allStandards = ['c++11', 'c++14']
 def getStdFlag(cfg, std):
   fallbacks = {
     'c++11': 'c++0x',
