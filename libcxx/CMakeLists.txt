@@ -530,7 +530,7 @@ function(cxx_add_basic_build_flags target)
   # Require C++20 for all targets. C++17 is needed to use aligned allocation
   # in the dylib. C++20 is needed to use char8_t.
   set_target_properties(${target} PROPERTIES
-    CXX_STANDARD 20
+    CXX_STANDARD 14
     CXX_STANDARD_REQUIRED NO
     CXX_EXTENSIONS NO)
 
@@ -627,7 +627,6 @@ function(cxx_add_warning_flags target)
     target_add_compile_flags_if_supported(${target} PRIVATE
       -Wno-literal-suffix
       -Wno-c++14-compat
-      -Wno-noexcept-type
       -Wno-suggest-override)
   endif()
   if (LIBCXX_ENABLE_WERROR)
