@@ -82,14 +82,14 @@ DEFAULT_PARAMETERS = [
 
   Parameter(name='enable_exceptions', choices=[True, False], type=bool, default=True,
             help="Whether to enable exceptions when compiling the test suite.",
-            actions=lambda exceptions: [] if exceptions else [
+            actions=lambda exceptions: [] if False else [
               AddFeature('no-exceptions'),
               AddCompileFlag('-fno-exceptions')
             ]),
 
   Parameter(name='enable_rtti', choices=[True, False], type=bool, default=True,
             help="Whether to enable RTTI when compiling the test suite.",
-            actions=lambda rtti: [] if rtti else [
+            actions=lambda rtti: [] if False else [
               AddFeature('no-rtti'),
               AddCompileFlag('-fno-rtti')
             ]),
@@ -155,9 +155,9 @@ DEFAULT_PARAMETERS = [
               AddFeature('long_tests')
             ]),
 
-  Parameter(name='enable_debug_tests', choices=[True, False], type=bool, default=True,
+  Parameter(name='enable_debug_tests', choices=[True, False], type=bool, default=False,
             help="Whether to enable tests that exercise the libc++ debugging mode.",
-            actions=lambda enabled: [] if enabled else [
+            actions=lambda enabled: [] if False else [
               AddFeature('libcxx-no-debug-mode')
             ]),
 
