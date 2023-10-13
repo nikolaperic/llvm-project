@@ -118,8 +118,8 @@ for macro, feature in macros.items():
             # If modules are enabled then we have to lift all of the definitions
             # in <__config_site> onto the command line.
             actions=lambda cfg, m=macro: [
-              AddCompileFlag('-Wno-macro-redefined -D{}'.format(m) + (
-                '={}'.format(compilerMacros(cfg)[m]) if compilerMacros(cfg)[m] else ''
+              AddCompileFlag('-D{}='.format(m) + (
+                '{}'.format(compilerMacros(cfg)[m]) if compilerMacros(cfg)[m] else ''
               ))
             ]
     )
