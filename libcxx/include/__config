@@ -22,6 +22,10 @@
 #pragma GCC system_header
 #endif
 
+// Really the compiler should be defining this by default -- that's
+// what most G++'s do.
+#define _GNU_SOURCE 1
+
 #ifdef __cplusplus
 
 #ifdef __GNUC__
