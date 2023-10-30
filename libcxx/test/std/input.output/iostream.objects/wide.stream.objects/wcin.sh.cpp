@@ -7,6 +7,7 @@
 //===----------------------------------------------------------------------===//
 
 // XFAIL: libcpp-has-no-stdin
+// REQUIRES: LIBCXX-USE-BASH
 
 // <iostream>
 

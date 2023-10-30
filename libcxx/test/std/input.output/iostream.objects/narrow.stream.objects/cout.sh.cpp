@@ -13,6 +13,7 @@
 // istream cout;
 
 // XFAIL: LIBCXX-WINDOWS-FIXME
+// REQUIRES: LIBCXX-USE-BASH
 
 // FILE_DEPENDENCIES: ../check-stdout.sh
 // RUN: %{build}

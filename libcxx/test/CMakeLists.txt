@@ -35,6 +35,8 @@ option(LIBCXX_LINK_TESTS_WITH_SHARED_LIBCXX
        "Whether the libc++ tests should link with the shared libc++ library"
        ${LIBCXX_ENABLE_SHARED})
 
+option(LIBCXX_USE_BASH "Whether the libc++ tests should use bash" ON)
+
 if(DEFINED LIBCXXABI_ENABLE_SHARED
    AND LIBCXX_LINK_TESTS_WITH_SHARED_LIBCXXABI
    AND NOT LIBCXXABI_ENABLE_SHARED)
@@ -69,6 +71,7 @@ pythonize_bool(LIBCXX_HAVE_CXX_ATOMICS_WITH_LIB)
 pythonize_bool(LIBCXX_BUILD_EXTERNAL_THREAD_LIBRARY)
 pythonize_bool(LIBCXX_DEBUG_BUILD)
 pythonize_bool(LIBCXX_ENABLE_PARALLEL_ALGORITHMS)
+pythonize_bool(LIBCXX_USE_BASH)
 
 # By default, for non-standalone builds, libcxx and libcxxabi share a library
 # directory.
