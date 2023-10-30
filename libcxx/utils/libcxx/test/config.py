@@ -232,6 +232,7 @@ class Configuration(object):
                 self.libcxx_obj_root = self.project_obj_root
 
     def configure_features(self):
+        self.config.available_features.add('LIBCXX-USE-BASH')
         if self.target_info.is_windows():
             if self.cxx_stdlib_under_test == 'libc++':
                 # LIBCXX-WINDOWS-FIXME is the feature name used to XFAIL the
@@ -240,6 +241,8 @@ class Configuration(object):
                 # and regressions. Note: New failures should not be suppressed
                 # using this feature. (Also see llvm.org/PR32730)
                 self.config.available_features.add('LIBCXX-WINDOWS-FIXME')
+        if not self.config.use_bash:
+            self.config.available_features.remove('LIBCXX-USE-BASH')
 
     def configure_compile_flags(self):
         self.configure_default_compile_flags()

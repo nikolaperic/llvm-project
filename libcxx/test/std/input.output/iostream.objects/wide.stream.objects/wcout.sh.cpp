@@ -8,6 +8,7 @@
 
 // XFAIL: libcpp-has-no-stdout
 // XFAIL: LIBCXX-WINDOWS-FIXME
+// REQUIRES: LIBCXX-USE-BASH
 
 // <iostream>
 

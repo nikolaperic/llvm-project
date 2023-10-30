@@ -11,6 +11,7 @@
 // istream wcerr;
 
 // XFAIL: LIBCXX-WINDOWS-FIXME
+// REQUIRES: LIBCXX-USE-BASH
 
 // FILE_DEPENDENCIES: ../check-stderr.sh
 // RUN: %{build}
