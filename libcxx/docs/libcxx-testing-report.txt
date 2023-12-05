@@ -1,0 +1,152 @@
+-------------- LIBCXX Testing Report --------------
+
+-------------- FAILED TESTS ERRORS --------------
+
+1) error: fenv.h: No such file or directory
+
+    FILES:
+    - libcxx/test/libcxx/depr/depr.c.headers/fenv.pass.cpp
+    - libcxx/test/libcxx/depr/depr.c.headers/extern_c.pass.cpp
+    - libcxx/test/libcxx/double_include.sh.cpp
+    - libcxx/test/libcxx/min_max_macros.compile.pass.cpp
+    - libcxx/test/libcxx/no_assert_include.compile.pass.cpp
+    - libcxx/test/libcxx/numerics/cfenv/version.pass.cpp
+    - libcxx/test/std/depr/depr.c.headers/fenv_h.pass.cpp
+    - libcxx/test/std/numerics/cfenv/cfenv.syn/cfenv.pass.cpp
+
+    CAUSE: fenv.h is not provided in newlib v2.5.0.
+
+    FIX: Use newlib version v3.2.0 and above.
+
+---
+
+2) error: non-constant condition for static assertion
+
+    FILES:
+    - libcxx/test/std/strings/string.view/string.view.find/find_char_size.pass.cpp
+    - libcxx/test/std/strings/string.view/string.view.find/find_first_not_of_pointer_size.pass.cpp
+    - libcxx/test/std/strings/string.view/string.view.find/find_first_of_char_size.pass.cpp
+    - libcxx/test/std/strings/string.view/string.view.find/find_first_not_of_pointer_size_size.pass.cpp
+    - libcxx/test/std/strings/string.view/string.view.find/find_last_not_of_pointer_size.pass.cpp
+    - libcxx/test/std/strings/string.view/string.view.find/find_last_of_pointer_size.pass.cpp
+    - libcxx/test/std/strings/string.view/string.view.find/find_last_of_pointer_size_size.pass.cpp
+
+    CAUSE: *std::basic_string_view<char, constexpr_char_traits<char>>* "find" methods do not return constant expression.
+
+    FIX: Fixed when using newer version of toolchain (nanoMIPS-2022.03-01).
+
+---
+
+3) error: undefined reference to 'gettimeofday'
+
+    FILES:
+    - libcxx/test/std/utilities/time/time.clock/time.clock.hires/consistency.pass.cpp
+    - libcxx/test/std/utilities/time/time.clock/time.clock.system/from_time_t.pass.cpp
+    - libcxx/test/std/utilities/time/time.clock/time.clock.hires/now.pass.cpp
+    - libcxx/test/std/utilities/time/time.clock/time.clock.system/consistency.pass.cpp
+    - libcxx/test/std/utilities/time/time.clock/time.clock.system/now.pass.cpp
+    - libcxx/test/std/utilities/time/time.clock/time.clock.system/to_time_t.pass.cpp
+    - libcxx/test/std/utilities/time/time.point/time.point.nonmember/op_-duration.pass.cpp
+
+    CAUSE: The *gettimeofday()* function lacks an implementation; only its declaration is available in the toolchain's *sys/time.h* header.
+
+---
+
+4) error: class std::__1::function<int(...)> has no member named ‘target’
+
+    FILES:
+    - libcxx/test/std/utilities/function.objects/func.wrap/func.wrap.func/func.wrap.func.con/alloc_F.pass.cpp
+    - libcxx/test/std/utilities/function.objects/func.wrap/func.wrap.func/func.wrap.func.mod/assign_F_alloc.pass.cpp
+
+    CAUSE: the absence of RTTI (Run-Time Type Information); flag -fno-rtti is used when compiling tests.
+
+---
+
+-------------- FAILED ASSERTIONS --------------
+
+---
+
+1) assertion "!t.isctype(' ', t.lookup_classname(s.begin(), s.end()))" failed
+
+    FILE: libcxx/test/std/re/re.traits/isctype.pass.cpp
+
+    LINE: 32
+
+    CAUSE: at the time of calling the *regex_traits<_CharT>::isctype()* function, *__regex_word* has value zero.
+           In order for assertion not to fail, *__regex_word* must have a value representing one of the following
+           character class: upper, lower, digit.
+
+---
+
+2) assertion "(std::ctype_base::print & std::regex_traits<char>::__regex_word) == 0" failed
+
+    FILE: libcxx/test/std/re/re.traits/lookup_classname.pass.cpp
+
+    LINE: 63
+
+    CAUSE: ctype mask is fully saturadted when using *NEWLIB*, and bacuse of that *__regex_word* mask is set to the same value as the mask for *print* character class.
+
+    FIX: set the *regex_word* mask to a value that does not match any of the mask values from the other character classes.
+         This is fixed in llvm-16, see here: https://github.com/llvm/llvm-project/commit/4559864897500193d2812cea7b66dc8daba0b836
+
+---
+
+3) assertion "f.sgetc() == 'z'" failed
+
+    FILE: libcxx/test/std/input.output/file.streams/fstreams/filebuf.virtuals/seekoff.pass.cpp
+
+    LINE: 41
+
+    CAUSE: problem with setting the iterator at the std::ios::end position of filebuf.
+
+---
+
+4) assertion "f.sgetc() == L'z'" failed
+
+    FILE: libcxx/test/std/localization/locales/locale.convenience/conversions/conversions.buffer/seekoff.pass.cpp
+
+    LINE: 54
+
+    CAUSE: problem with setting the iterator at the std::ios::end position of filebuf.
+
+---
+
+5) assertion "( p[i] & set) == set" failed
+
+    FILE: libcxx/test/std/localization/locale.categories/category.ctype/facet.ctype.special/facet.ctype.char.statics/classic_table.pass.cpp
+
+    LINE: 58
+
+    CAUSE: F:blank flag not aligned with what is expected by the test, F:blank bit is set only for space character, but not for tab character.
+
+---
+
+6) assertion "ex == "nan"" failed
+
+    FILE: libcxx/test/std/localization/locale.categories/category.numeric/locale.nm.put/facet.num.put.members/put_long_double.pass.cpp
+
+    LINE: 10891
+
+    CAUSE: a "+" sign is added for NaNs, which is not expeced by the test.
+
+---
+
+7) assertion "msg.rfind("Unknown error", 0) == 0" failed
+
+    FILE: libcxx/test/std/diagnostics/syserr/syserr.errcat/syserr.errcat.objects/generic_category.pass.cpp
+
+    LINE: 30
+
+    CAUSE: the implementation of the strerror function returns an empty string for unrecognized error types, but the test expects a message starting with "Unknown error".
+
+---
+
+8) assertion "msg.rfind("Unknown error", 0) == 0" failed
+
+    FILE: libcxx/test/std/diagnostics/syserr/syserr.errcat/syserr.errcat.objects/system_category.pass.cpp
+
+    LINE: 30
+
+    CAUSE: the implementation of the strerror function returns an empty string for unrecognized error types, but the test expects a message starting with "Unknown error".
+
+---
