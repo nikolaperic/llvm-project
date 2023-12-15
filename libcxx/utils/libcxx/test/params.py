@@ -62,7 +62,8 @@ DEFAULT_PARAMETERS = [
             actions=lambda triple: filter(None, [
               AddFeature('target={}'.format(triple)),
               AddFlagIfSupported('--target={}'.format(triple)),
-            ])),
+            ] + [AddLinkFlag("-Wl,--defsym,__memory_size=256M -Tuhi32.ld")] if triple == "nanomips-elf" else []
+            )),
 
   Parameter(name='std', choices=_allStandards, type=str,
             help="The version of the standard to compile the test suite with.",
