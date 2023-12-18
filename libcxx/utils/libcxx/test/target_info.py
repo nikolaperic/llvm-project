@@ -103,6 +103,7 @@ class LinuxLocalTI(DefaultTargetInfo):
         llvm_unwinder = self.full_config.get_lit_bool('llvm_unwinder', False)
         shared_libcxx = self.full_config.get_lit_bool('enable_shared', True)
         flags += ['-lm']
+        flags += ['-lstubs']
         if True:
             pass # no unwinding (yet?)
         elif not llvm_unwinder:

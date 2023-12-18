@@ -50,6 +50,8 @@
 
     CAUSE: The gettimeofday() function lacks an implementation; only its declaration is available in the toolchain's sys/time.h header.
 
+    FIX: Fixed when using libstubs.c library.
+
 ---
 
 4) error: class std::__1::function<int(...)> has no member named ‘target’
