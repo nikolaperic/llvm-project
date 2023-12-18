@@ -936,6 +936,8 @@ add_subdirectory(include)
 add_subdirectory(src)
 add_subdirectory(utils)
 
+add_library(stubs STATIC libstubs.c)
+
 set(LIBCXX_TEST_DEPS "")
 
 if (LIBCXX_ENABLE_EXPERIMENTAL_LIBRARY)
